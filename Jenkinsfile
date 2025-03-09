@@ -15,25 +15,24 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            when {
-                not {
-                    equals expected: true, actual: params.destroy
-                }
-            }
+            when { not { equals expected: true, actual: params.destroy } }
             steps {
                 script {
-                    dir("terraform") {
-                        sh """
-                            git clone https://github.com/Sudha2804/Terraform-module.git
-                        """
-                    }
+                    sh 'rm -rf terraform'  // Remove old directory
+                    sh 'git clone https://github.com/Sudha2804/Terraform-module.git terraform'
                 }
             }
         }
 
         stage('Navigate and Run Terraform') {
             steps {
-                dir('terraform/assignment_terraform/ec2_instance') {
+                dir('terraform/ec2_instance') {  // Ensure correct directory
+                    sh """
+                        if [ -z "$(ls -A *.tf 2>/dev/null)" ]; then
+                            echo "Error: No Terraform configuration files found!"
+                            exit 1
+                        fi
+                    """
                     sh 'terraform init'
                     sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
                     sh 'terraform plan -input=false -out=tfplan'
@@ -44,16 +43,12 @@ pipeline {
 
         stage('Approval') {
             when {
-                not {
-                    equals expected: true, actual: params.autoApprove
-                }
-                not {
-                    equals expected: true, actual: params.destroy
-                }
+                not { equals expected: true, actual: params.autoApprove }
+                not { equals expected: true, actual: params.destroy }
             }
             steps {
                 script {
-                    def plan = readFile 'terraform/assignment_terraform/ec2_instance/tfplan.txt'
+                    def plan = readFile 'terraform/ec2_instance/tfplan.txt'
                     input message: "Do you want to apply the plan?",
                     parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
                 }
@@ -61,24 +56,18 @@ pipeline {
         }
 
         stage('Apply') {
-            when {
-                not {
-                    equals expected: true, actual: params.destroy
-                }
-            }
+            when { not { equals expected: true, actual: params.destroy } }
             steps {
-                dir('terraform/assignment_terraform/ec2_instance') {
+                dir('terraform/ec2_instance') {
                     sh 'terraform apply -input=false tfplan'
                 }
             }
         }
 
         stage('Destroy') {
-            when {
-                equals expected: true, actual: params.destroy
-            }
+            when { equals expected: true, actual: params.destroy }
             steps {
-                dir('terraform/assignment_terraform/ec2_instance') {
+                dir('terraform/ec2_instance') {
                     sh 'terraform destroy --auto-approve'
                 }
             }
