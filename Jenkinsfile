@@ -26,12 +26,11 @@ pipeline {
         stage('Plan') {
             steps {
                 dir('Terraform-module/assignment_terraform/ec2_instance') {
-                    sh """
-                        terraform init
-                        terraform workspace select ${params.environment} || terraform workspace new ${params.environment}
-                        terraform plan -input=false -out=tfplan
-                        terraform show -no-color tfplan > tfplan.txt
-                    """
+                    sh "terraform init"
+                    sh  "terraform workspace select ${params.environment}" || "terraform workspace new ${params.environment}"
+                    sh "terraform plan -input=false -out=tfplan"
+                    sh  "terraform show -no-color tfplan > tfplan.txt"
+        
                 }
             }
         }
