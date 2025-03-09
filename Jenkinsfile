@@ -42,15 +42,23 @@ pipeline {
                 }
             }
             
-            steps {
-                sh 'terraform init -input=false'
-                sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
+            #steps {
+              #  sh 'terraform init -input=false'
+              #  sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
 
-                sh "terraform plan -input=false -out tfplan "
-                sh 'terraform show -no-color tfplan > tfplan.txt'
+              #  sh "terraform plan -input=false -out tfplan "
+              #  sh 'terraform show -no-color tfplan > tfplan.txt'
+           # }
+       # }
+
+        stage('Navigate and Run Terraform') {
+            steps {
+                dir('assignment_terraform/ec2_instance') {
+                    sh 'terraform init'
+                    sh 'terraform plan'
+                }
             }
-        }
-        stage('Approval') {
+        }stage('Approval') {
            when {
                not {
                    equals expected: true, actual: params.autoApprove
