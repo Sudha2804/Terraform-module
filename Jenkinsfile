@@ -26,7 +26,8 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 script {
-                    sh 'terraform plan -var-file=${TF_VAR_file} -out=tfplan'
+                    sh 'terraform plan -out=tfplan'
+
                 }
             }
         }
