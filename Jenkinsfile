@@ -21,9 +21,7 @@ pipeline {
             steps {
                 script {
                     dir("terraform") {
-                        sh """
-                            git clone https://github.com/Sudha2804/Terraform-module.git
-                        """
+                        sh "git clone https://github.com/Sudha2804/Terraform-module.git"
                     }
                 }
             }
@@ -36,7 +34,7 @@ pipeline {
             steps {
                 dir('terraform/assignment_terraform/ec2_instance') {
                     sh "terraform init"
-                    sh "terraform workspace select ${params.environment}"|| terraform workspace new ${params.environment}
+                    sh "terraform workspace select ${params.environment}"|| "terraform workspace new ${params.environment}"
                     sh "terraform plan -input=false -out=tfplan"
                     sh "terraform show -no-color tfplan > tfplan.txt"
                     
