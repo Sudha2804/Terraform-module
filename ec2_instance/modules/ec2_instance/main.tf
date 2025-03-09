@@ -17,14 +17,15 @@ resource "aws_vpc" "main" {
   }
 }
 
-# Subnet
-resource "aws_subnet" "main" {
+# Public Subnet
+resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.subnet_cidr_block
+  cidr_block              = var.public_subnet_cidr_block
   map_public_ip_on_launch = true
+  availability_zone       = var.availability_zone
 
   tags = {
-    Name = format("%s-subnet", local.name_prefix)
+    Name = format("%s-public-subnet", local.name_prefix)
   }
 }
 
@@ -50,7 +51,6 @@ resource "aws_security_group" "allow_ssh" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # ✅ Corrected egress block (Removed invalid `map_public_ip_on_launch`)
   egress {
     from_port   = 0
     to_port     = 0
@@ -67,7 +67,7 @@ resource "aws_security_group" "allow_ssh" {
 resource "aws_instance" "web" {
   ami                    = var.ami
   instance_type          = var.instance_type
-  subnet_id              = aws_subnet.main.id
+  subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
   key_name               = var.key_name  # Ensure it's defined in AWS
 
