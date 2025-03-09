@@ -53,5 +53,4 @@ resource "aws_instance" "app" {
   }
 }
 
-can you try this?
-with adding public subnet resource
+
