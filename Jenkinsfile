@@ -24,7 +24,6 @@ pipeline {
         }
 
         stage('Plan') {
-            when { not { equals expected: true, actual: params.destroy } }
             steps {
                 dir('Terraform-module/assignment_terraform/ec2_instance') {
                     sh """
@@ -38,10 +37,6 @@ pipeline {
         }
 
         stage('Approval') {
-            when { 
-                not { equals expected: true, actual: params.autoApprove }
-                not { equals expected: true, actual: params.destroy }
-            }
             steps {
                 dir('Terraform-module/assignment_terraform/ec2_instance') {
                     script {
@@ -54,7 +49,6 @@ pipeline {
         }
 
         stage('Apply') {
-            when { not { equals expected: true, actual: params.destroy } }
             steps {
                 dir('Terraform-module/assignment_terraform/ec2_instance') {
                     sh "terraform apply -input=false tfplan"
@@ -63,18 +57,14 @@ pipeline {
         }
 
         stage('Ansible Playbook') {
-            when { not { equals expected: true, actual: params.destroy } }
             steps {
                 dir('Terraform-module/ansible') {  // Adjust path based on repo structure
-                    sh """
-                        ansible-playbook -i inventory.ini playbook.yml
-                    """
+                    sh "ansible-playbook -i inventory.ini playbook.yml"
                 }
             }
         }
 
         stage('Destroy') {
-            when { equals expected: true, actual: params.destroy }
             steps {
                 dir('Terraform-module/assignment_terraform/ec2_instance') {
                     sh "terraform destroy --auto-approve"
